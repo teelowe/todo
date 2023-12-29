@@ -2,11 +2,19 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed todo.db
+var content embed.FS
+
+func getEmbeddedFileContent() ([]byte, error) {
+	return content.ReadFile("todo.db")
+}
 
 var commands = map[string]func([]string, *sql.DB){
 	"create":  create,
@@ -19,10 +27,28 @@ var commands = map[string]func([]string, *sql.DB){
 }
 
 func main() {
-	db, err := sql.Open("sqlite3", "./todo.db")
+	dbFilePath := "todo.db"
 
+	// Check if the database file already exists
+	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
+		// If the file doesn't exist, create it and write the embedded content
+		data, err := getEmbeddedFileContent()
+		if err != nil {
+			fmt.Println("Error reading embedded file:", err)
+			return
+		}
+
+		if err := os.WriteFile(dbFilePath, data, 0644); err != nil {
+			fmt.Println("Error creating database file:", err)
+			return
+		}
+
+		fmt.Println("Database file created successfully.")
+	}
+
+	db, err := sql.Open("sqlite3", dbFilePath)
 	if err != nil {
-		fmt.Println(fmt.Errorf("error creating connection to db %w", err))
+		fmt.Println(fmt.Errorf("error opening connection to db %w", err))
 	}
 	defer db.Close()
 	err = db.Ping()
