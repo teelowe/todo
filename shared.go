@@ -27,6 +27,7 @@ func listExists(name string, db *sql.DB) (string, error) {
 	}
 }
 
+// print usage for the app
 func usage() string {
 	s := "Usage: todo [command] [flags]\nAvailable commands:\n"
 	for k := range commands {

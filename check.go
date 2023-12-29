@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// check an item(s) in a specified list (i.e. mark it as "done")
 func check(args []string, db *sql.DB) {
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	list := checkCmd.String("l", "", "the name of the list containing the item to check")

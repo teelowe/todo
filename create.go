@@ -8,9 +8,10 @@ import (
 	"strings"
 )
 
+// create a new list with a given name
 func create(args []string, db *sql.DB) {
 	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
-	createCmd.String("n", "", "the name of the list to create")
+	createCmd.String("l", "", "the name of the list to create")
 	createCmd.Parse(args)
 	validateArgs(createCmd, 1)
 

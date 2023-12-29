@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// remove a specified item(s) from a specified list
 func remove(args []string, db *sql.DB) {
 	removeCmd := flag.NewFlagSet("remove", flag.ExitOnError)
 	list := removeCmd.String("l", "", "the name of the list to remove items from")

@@ -1,23 +1,26 @@
-todo create -l | --list (list) // creates a new list 
+### a stupid todo CLI
+```
+// creates a new list 
+todo create -l (list) 
  
-todo delete -l | --list (list) // deletes a list
+// deletes a list
+todo delete -l (list) 
  
-todo add -l | --list (list) (item) // add item to specified list
- 
-todo remove -l | --list (list) (item) // remove item from specified list
+// add item to specified list
+todo add -l (list) -i (item) 
 
-todo check -l | --list (list) (item) // check an item as done on the specified list
+// remove item from specified list
+todo remove -l (list) -i (item) 
 
-todo uncheck -l | --list (list) (item) // uncheck an item as done on the specified list
+// check an item as "done" on the specified list
+todo check -l (list) -i (item) 
 
-todo show  //show all lists
+// uncheck an item as "done" on the specified list
+todo uncheck -l (list) -i (item) 
 
-todo show -l | --list (list) //show a specified list
- 
-subcommands: create, delete, add, remove, check, uncheck, show
-positional args: item
-flags: -l, 
+//show all lists
+todo show  
 
-subcommand flag positional
-subcommand flag positional positional
-subcommand
+//show a specified list(s)
+todo show -l (list(s)) 
+```

@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// add a specified item (todo) to a specified list
 func add(args []string, db *sql.DB) {
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	list := addCmd.String("l", "", "the name of the list to add items to")

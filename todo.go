@@ -19,9 +19,6 @@ var commands = map[string]func([]string, *sql.DB){
 }
 
 func main() {
-	//db.Query // returns 0 or more rows
-	//db.QueryRow // returns at most one row
-	//db.Exec // execute query without returning any rows - returns Result interface
 	db, err := sql.Open("sqlite3", "./todo.db")
 
 	if err != nil {
@@ -32,7 +29,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println("Connected to db...")
 
 	_, err = db.Exec(`
 		PRAGMA foreign_keys = ON;
@@ -55,8 +51,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	// fmt.Println("Tables created...")
 
 	if len(os.Args) < 2 {
 		fmt.Println(usage())

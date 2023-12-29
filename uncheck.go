@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// uncheck a specified item(s) in a specified list
 func uncheck(args []string, db *sql.DB) {
 	uncheckCmd := flag.NewFlagSet("uncheck", flag.ExitOnError)
 	list := uncheckCmd.String("l", "", "the name of the list containing the item to uncheck")

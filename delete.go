@@ -8,9 +8,10 @@ import (
 	"strings"
 )
 
+// delete a list and all of its associated tasks
 func delete(args []string, db *sql.DB) {
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
-	deleteCmd.String("n", "", "the name of the list to delete")
+	deleteCmd.String("l", "", "the name of the list to delete")
 	err := deleteCmd.Parse(args)
 	if err != nil {
 		fmt.Println(err)
