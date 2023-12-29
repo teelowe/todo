@@ -14,14 +14,21 @@ func uncheck(args []string, db *sql.DB) {
 	item := uncheckCmd.String("i", "", "the name(s) of the item(s) to uncheck in the list")
 	uncheckCmd.Parse(args)
 	validateArgs(uncheckCmd, 2)
-
-	_, err := listExists(*list, db)
-	if err != nil {
-		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist: %w", *list, err))
+	exists, _ := listExists(*list, db)
+	if exists {
+		items := append([]string{*item}, uncheckCmd.Args()...)
+		for _, v := range items {
+			if itemExists(v, db) {
+				uncheckItems(items, list, db)
+			} else {
+				fmt.Println(fmt.Errorf("the specified item '%s' doesn't exist in list %s", v, *list))
+				os.Exit(1)
+			}
+		}
+	} else {
+		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
 		os.Exit(1)
 	}
-	items := append([]string{*item}, uncheckCmd.Args()...)
-	uncheckItems(items, list, db)
 }
 
 func uncheckItems(items []string, list *string, db *sql.DB) {

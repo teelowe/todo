@@ -14,14 +14,21 @@ func check(args []string, db *sql.DB) {
 	item := checkCmd.String("i", "", "the name(s) of the item(s) to check in the list")
 	checkCmd.Parse(args)
 	validateArgs(checkCmd, 2)
-
-	_, err := listExists(*list, db)
-	if err != nil {
-		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist: %w", *list, err))
+	exists, _ := listExists(*list, db)
+	if exists {
+		items := clean(append([]string{*item}, checkCmd.Args()...))
+		for _, v := range items {
+			if itemExists(v, db) {
+				checkItems(items, list, db)
+			} else {
+				fmt.Println(fmt.Errorf("the specified item '%s' doesn't exist in list %s", v, *list))
+				os.Exit(1)
+			}
+		}
+	} else {
+		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
 		os.Exit(1)
 	}
-	items := append([]string{*item}, checkCmd.Args()...)
-	checkItems(items, list, db)
 }
 
 func checkItems(items []string, list *string, db *sql.DB) {

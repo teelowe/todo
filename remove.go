@@ -15,13 +15,14 @@ func remove(args []string, db *sql.DB) {
 	removeCmd.Parse(args)
 	validateArgs(removeCmd, 2)
 
-	listId, err := listExists(*list, db)
-	if err != nil {
-		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist: %w", *list, err))
-		os.Exit(1)
+	exists, id := listExists(*list, db)
+	if exists {
+		items := clean(append([]string{*item}, removeCmd.Args()...))
+		removeItems(items, id, list, db)
+		return
 	}
-	items := append([]string{*item}, removeCmd.Args()...)
-	removeItems(items, listId, list, db)
+	fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
+	os.Exit(1)
 }
 
 func removeItems(items []string, listId string, list *string, db *sql.DB) {

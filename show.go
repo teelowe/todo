@@ -29,7 +29,7 @@ func show(args []string, db *sql.DB) {
 	list := showCmd.String("l", "", "the name of the list to show (optional)")
 	showCmd.Parse(args)
 
-	allProvidedLists := append([]string{*list}, showCmd.Args()...)
+	allProvidedLists := clean(append([]string{*list}, showCmd.Args()...))
 	listFlagProvided := showCmd.Lookup("l").Value.String()
 	if listFlagProvided == "" {
 		lists := getLists(nil, db)

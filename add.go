@@ -14,14 +14,15 @@ func add(args []string, db *sql.DB) {
 	item := addCmd.String("i", "", "the name(s) of the item(s) to add to the list")
 	addCmd.Parse(args)
 	validateArgs(addCmd, 2)
-
-	listId, err := listExists(*list, db)
-	if err != nil {
-		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist: %w", *list, err))
-		os.Exit(1)
+	exists, id := listExists(*list, db)
+	if exists {
+		items := clean(append([]string{*item}, addCmd.Args()...))
+		insertItems(items, id, list, db)
+		return
 	}
-	items := append([]string{*item}, addCmd.Args()...)
-	insertItems(items, listId, list, db)
+
+	fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
+	os.Exit(1)
 }
 
 func insertItems(items []string, listId string, list *string, db *sql.DB) {
