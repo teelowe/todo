@@ -20,7 +20,6 @@ func add(args []string, db *sql.DB) {
 		insertItems(items, id, list, db)
 		return
 	}
-
 	fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
 	os.Exit(1)
 }

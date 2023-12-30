@@ -28,28 +28,21 @@ func show(args []string, db *sql.DB) {
 	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
 	list := showCmd.String("l", "", "the name of the list to show (optional)")
 	showCmd.Parse(args)
-
 	allProvidedLists := clean(append([]string{*list}, showCmd.Args()...))
 	listFlagProvided := showCmd.Lookup("l").Value.String()
+	var lists map[string]string
 	if listFlagProvided == "" {
-		lists := getLists(nil, db)
-		var tdl TodoList
-		var tdls TodoLists
-		for k, v := range lists {
-			tdl = todoList(k, v, db)
-			tdls = append(tdls, tdl)
-		}
-		renderOutput(tdls)
+		lists = getLists(nil, db)
 	} else {
-		lists := getLists(allProvidedLists, db)
-		var tdl TodoList
-		var tdls TodoLists
-		for k, v := range lists {
-			tdl = todoList(k, v, db)
-			tdls = append(tdls, tdl)
-		}
-		renderOutput(tdls)
+		lists = getLists(allProvidedLists, db)
 	}
+	var tdl TodoList
+	var tdls TodoLists
+	for k, v := range lists {
+		tdl = todoList(k, v, db)
+		tdls = append(tdls, tdl)
+	}
+	renderOutput(tdls)
 }
 
 // render the todo lists in table format
@@ -78,47 +71,32 @@ func renderStatus(checked int) string {
 	return string("\u25A1")
 }
 
-// return specified lists or all lists
+// return map[id]name for specified lists or all lists
 func getLists(listNames []string, db *sql.DB) map[string]string {
+	var queryListIds *sql.Rows
+	var err error
 	if listNames != nil {
-		queryListIds, err := db.Query("SELECT id, name FROM lists WHERE name in ($1)", strings.Join(listNames[:], ","))
-		if err != nil {
-			fmt.Println(fmt.Errorf("error selecting list names: %w", err))
-			os.Exit(1)
-		}
-		defer queryListIds.Close()
-		lists := make(map[string]string, 0)
-		for queryListIds.Next() {
-			var id, name string
-			if err := queryListIds.Scan(&id, &name); err != nil {
-				panic(err)
-			}
-			lists[id] = name
-		}
-		if queryListIds.Err() != nil {
-			panic(queryListIds.Err())
-		}
-		return lists
+		queryListIds, err = db.Query("SELECT id, name FROM lists WHERE name in ($1)", strings.Join(listNames[:], ","))
 	} else {
-		queryListIds, err := db.Query("SELECT id, name FROM lists")
-		if err != nil {
-			fmt.Println(fmt.Errorf("error selecting all lists: %w", err))
-			os.Exit(1)
-		}
-		defer queryListIds.Close()
-		lists := make(map[string]string, 0)
-		for queryListIds.Next() {
-			var id, name string
-			if err := queryListIds.Scan(&id, &name); err != nil {
-				panic(err)
-			}
-			lists[id] = name
-		}
-		if queryListIds.Err() != nil {
-			panic(queryListIds.Err())
-		}
-		return lists
+		queryListIds, err = db.Query("SELECT id, name FROM lists")
 	}
+	if err != nil {
+		fmt.Println(fmt.Errorf("error selecting lists: %w", err))
+		os.Exit(1)
+	}
+	defer queryListIds.Close()
+	lists := make(map[string]string, 0)
+	for queryListIds.Next() {
+		var id, name string
+		if err := queryListIds.Scan(&id, &name); err != nil {
+			panic(err)
+		}
+		lists[id] = name
+	}
+	if queryListIds.Err() != nil {
+		panic(queryListIds.Err())
+	}
+	return lists
 }
 
 // return a TodoList based on a list id and a list name
