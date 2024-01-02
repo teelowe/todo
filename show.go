@@ -76,9 +76,13 @@ func getLists(listNames []string, db *sql.DB) map[string]string {
 	var queryListIds *sql.Rows
 	var err error
 	if listNames != nil {
-		queryListIds, err = db.Query("SELECT id, name FROM lists WHERE name in ($1)", strings.Join(listNames[:], ","))
+		args := make([]any, len(listNames))
+		for i, list := range listNames {
+			args[i] = list
+		}
+		queryListIds, err = db.Query(`SELECT id, name FROM lists WHERE name in (?`+strings.Repeat(",?", len(args)-1)+`)`, args...)
 	} else {
-		queryListIds, err = db.Query("SELECT id, name FROM lists")
+		queryListIds, err = db.Query(`SELECT id, name FROM lists`)
 	}
 	if err != nil {
 		fmt.Println(fmt.Errorf("error selecting lists: %w", err))
