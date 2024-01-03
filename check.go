@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/teelowe/todo/storage"
 )
 
 // check an item(s) in a specified list (i.e. mark it as "done")
@@ -19,7 +21,7 @@ func check(args []string, db *sql.DB) {
 		items := clean(append([]string{*item}, checkCmd.Args()...))
 		for _, v := range items {
 			if itemExists(v, db) {
-				checkItems(items, list, db)
+				storage.CheckItems(items, list, db)
 			} else {
 				fmt.Println(fmt.Errorf("the specified item '%s' doesn't exist in list %s", v, *list))
 				os.Exit(1)
@@ -28,17 +30,5 @@ func check(args []string, db *sql.DB) {
 	} else {
 		fmt.Println(fmt.Errorf("the provided list '%s' doesn't exist", *list))
 		os.Exit(1)
-	}
-}
-
-func checkItems(items []string, list *string, db *sql.DB) {
-	for i, v := range items {
-		_, err := db.Exec(`
-		UPDATE items SET CHECKED = $1 WHERE description = $2`, 1, items[i])
-		if err != nil {
-			fmt.Println(fmt.Errorf("error checking item %s in list %s: %w", v, *list, err))
-			os.Exit(1)
-		}
-		fmt.Printf("checked item %s as done in list %s\n", v, *list)
 	}
 }

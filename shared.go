@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/teelowe/todo/storage"
 )
 
 // throw error if number of provided args is less than numArgs
@@ -16,9 +18,9 @@ func validateArgs(flagset *flag.FlagSet, numArgs int) {
 	}
 }
 
-// return true if the provided list name matches an existing list, else false
+// return true and listid if the provided list name matches an existing list, else false and ""
 func listExists(list_name string, db *sql.DB) (bool, string) {
-	row := db.QueryRow("SELECT id FROM lists WHERE name = $1", list_name)
+	row := storage.GetListIdByName(list_name, db)
 	var thisId string
 	if err := row.Scan(&thisId); err == sql.ErrNoRows {
 		return false, ""
@@ -28,7 +30,7 @@ func listExists(list_name string, db *sql.DB) (bool, string) {
 
 // return true if the provided lists_id
 func itemExists(item_name string, db *sql.DB) bool {
-	row := db.QueryRow("SELECT description FROM items WHERE items.description = $1", item_name)
+	row := storage.GetItemDescription(item_name, db)
 	var thisId string
 	if err := row.Scan(&thisId); err == sql.ErrNoRows {
 		return false

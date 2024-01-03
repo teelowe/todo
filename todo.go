@@ -7,14 +7,11 @@ import (
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/teelowe/todo/storage"
 )
 
 //go:embed todo.db
 var content embed.FS
-
-func getEmbeddedFileContent() ([]byte, error) {
-	return content.ReadFile("todo.db")
-}
 
 var commands = map[string]func([]string, *sql.DB){
 	"create":  create,
@@ -27,36 +24,39 @@ var commands = map[string]func([]string, *sql.DB){
 }
 
 func main() {
-	dbFilePath := "todo.db"
-
 	// Check if the database file already exists
-	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
+	if _, err := os.Stat("todo.db"); os.IsNotExist(err) {
 		// If the file doesn't exist, create it and write the embedded content
-		data, err := getEmbeddedFileContent()
+		data, err := content.ReadFile("todo.db")
 		if err != nil {
 			fmt.Println("Error reading embedded file:", err)
 			return
 		}
 
-		if err := os.WriteFile(dbFilePath, data, 0644); err != nil {
+		if err := os.WriteFile("todo.db", data, 0644); err != nil {
 			fmt.Println("Error creating database file:", err)
 			return
 		}
 
 		fmt.Println("Database file created successfully.")
 	}
-
-	db, err := sql.Open("sqlite3", dbFilePath)
+	db, err := storage.NewStore("sqlite3", "todo.db")
 	if err != nil {
-		fmt.Println(fmt.Errorf("error opening connection to db %w", err))
+		fmt.Println(err)
 	}
 	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
 
-	_, err = db.Exec(`
+	// db, err := sql.Open("sqlite3", "todo.db")
+	// if err != nil {
+	// 	fmt.Println(fmt.Errorf("error opening connection to db %w", err))
+	// }
+	// defer db.Close()
+	// err = db.Ping()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	db.DB.Exec(`
 		PRAGMA foreign_keys = ON;
 		CREATE TABLE IF NOT EXISTS lists (
 		id INTEGER PRIMARY KEY,
@@ -74,9 +74,9 @@ func main() {
 			ON DELETE CASCADE
 		);
 	`)
-	if err != nil {
-		panic(err)
-	}
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	if len(os.Args) < 2 {
 		fmt.Println(usage())
@@ -88,6 +88,6 @@ func main() {
 		fmt.Println(usage())
 		os.Exit(2)
 	} else {
-		cmd(os.Args[2:], db)
+		cmd(os.Args[2:], db.DB)
 	}
 }
