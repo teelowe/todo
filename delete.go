@@ -1,35 +1,27 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
+
+	"github.com/teelowe/todo/data"
+	"github.com/teelowe/todo/storage"
 )
 
 // delete a list and all of its associated tasks
-func delete(args []string, db *sql.DB) {
+func delete(args []string, db data.Database) {
 	deleteCmd := flag.NewFlagSet("delete", flag.ExitOnError)
 	deleteCmd.String("l", "", "the name of the list to delete")
 	err := deleteCmd.Parse(args)
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	for _, name := range args[1:] {
-		row := db.QueryRow("SELECT name FROM lists WHERE name = $1", strings.ToLower(name))
-		var thisName string
-		if err := row.Scan(&thisName); err == sql.ErrNoRows {
-			fmt.Println(fmt.Errorf("no list with name %s exists", name))
-			os.Exit(1)
+	for _, v := range args[1:] {
+		if err := storage.GetNameFromList(v, db); err != nil {
+			fmt.Println(err)
 		}
-		_, err = db.Exec(`
-		DELETE FROM lists WHERE name = ($1)`, strings.ToLower(name))
-		if err != nil {
-			fmt.Println(fmt.Errorf("error deleteing list with name %s: %w", name, err))
-			os.Exit(1)
+		if err = storage.DeleteList(v, db); err != nil {
+			fmt.Println(err)
 		}
-		fmt.Println("deleted list with name " + name)
 	}
 }

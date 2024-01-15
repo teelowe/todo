@@ -1,27 +1,22 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
+
+	"github.com/teelowe/todo/data"
+	"github.com/teelowe/todo/storage"
 )
 
 // create a new list with a given name
-func create(args []string, db *sql.DB) {
+func create(args []string, db data.Database) {
 	createCmd := flag.NewFlagSet("create", flag.ExitOnError)
 	createCmd.String("l", "", "the name of the list to create")
 	createCmd.Parse(args)
-	validateArgs(createCmd, 1)
-
-	for _, name := range args[1:] {
-		_, err := db.Exec(`
-		INSERT INTO lists (name) VALUES ($1)`, strings.ToLower(name))
+	for _, v := range args[1:] {
+		err := storage.InsertList(v, db)
 		if err != nil {
-			fmt.Println(fmt.Errorf("error inserting new list: %w", err))
-			os.Exit(1)
+			fmt.Println(err)
 		}
-		fmt.Println("created list with name " + name)
 	}
 }
