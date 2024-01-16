@@ -38,6 +38,7 @@ func (s *SQLiteDatabase) Query(query string, args ...any) (RowsInterface, error)
 }
 
 func (s *SQLiteDatabase) Close() error {
+	s.Connection.Close()
 	return nil
 }
 
@@ -54,10 +55,16 @@ func (m MockDB) Exec(query string, args ...any) (*sql.Result, error) {
 }
 
 func (m MockDB) QueryRow(query string, args ...any) RowInterface {
+	if m.E {
+		return &MockSqlRow{E: true}
+	}
 	return &MockSqlRow{}
 }
 
 func (m MockDB) Query(query string, args ...any) (RowsInterface, error) {
+	if m.E {
+		return &MockSqlRows{E: true}, errors.New("MockDB Query error")
+	}
 	return &MockSqlRows{}, nil
 }
 
@@ -66,7 +73,7 @@ func (m MockDB) Close() error {
 }
 
 type RowInterface interface {
-	Scan(dest ...any) error
+	Scan(destination ...any) error
 	Err() error
 }
 
@@ -75,12 +82,15 @@ type MockSqlRow struct {
 }
 
 func (msr MockSqlRow) Err() error {
-	return errors.New("mock sql row error")
+	if msr.E {
+		return errors.New("mock sql row error")
+	}
+	return nil
 }
 
 func (msr MockSqlRow) Scan(destination ...any) error {
 	if msr.E {
-		return errors.New("mock sql row scan error")
+		return sql.ErrNoRows
 	}
 	return nil
 }
@@ -93,6 +103,7 @@ type RowsInterface interface {
 }
 
 type MockSqlRows struct {
+	E bool
 }
 
 func (msrs MockSqlRows) Next() bool {
