@@ -138,8 +138,9 @@ func UncheckItems(items []string, list *string, db data.Database) error {
 	}
 	return nil
 }
+
 func ListExists(list_name string, db data.Database) (string, error) {
-	row := db.QueryRow(`SELECT id FROM lists WHERE name = $1`, list_name).(*sql.Row)
+	row := db.QueryRow(`SELECT id FROM lists WHERE name = $1`, list_name)
 	var thisId string
 	if err := row.Scan(&thisId); err == sql.ErrNoRows {
 		return "", err
@@ -147,8 +148,8 @@ func ListExists(list_name string, db data.Database) (string, error) {
 	return thisId, nil
 }
 
-func ItemExists(item_name string, db data.Database) (*sql.Row, error) {
-	row := db.QueryRow(`SELECT description FROM items WHERE items.description = $1`, item_name).(*sql.Row)
+func ItemExists(item_name string, db data.Database) (data.RowInterface, error) {
+	row := db.QueryRow(`SELECT description FROM items WHERE items.description = $1`, item_name)
 	var thisItem string
 	if err := row.Scan(&thisItem); err == sql.ErrNoRows {
 		return nil, err
