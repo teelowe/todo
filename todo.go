@@ -19,7 +19,7 @@ var commands = map[string]func(args []string, db data.Database){
 }
 
 func main() {
-	db := storage.SetupDB("sqlite3", "./storage/todo.db")
+	db := storage.SetupDB("sqlite3", "todo.db")
 	defer db.Close()
 	if len(os.Args) < 2 {
 		fmt.Println(usage())

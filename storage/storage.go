@@ -2,8 +2,9 @@ package storage
 
 import (
 	"database/sql"
-	"embed"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -12,21 +13,13 @@ import (
 	"github.com/teelowe/todo/data"
 )
 
-// go:embed todo.db
-var content embed.FS
-
 func SetupDB(driver, dsn string) *data.SQLiteDatabase {
-	//check if the database file already exists
-	if _, err := os.Stat(dsn); os.IsNotExist(err) {
-		// If the file doesn't exist, create it and write the embedded content
-		data, err := content.ReadFile(dsn)
-		if err != nil {
-			log.Fatalf("content.Readfile(dsn) failed with '%s'\n", err)
+	// if db file doesn't exist, create one
+	if _, err := os.Stat(dsn); errors.Is(err, fs.ErrNotExist) {
+		if err := os.WriteFile(dsn, []byte{}, 0644); err != nil {
+			log.Fatal("Error creating database file:", err)
 		}
-		if err := os.WriteFile(dsn, data, 0644); err != nil {
-			log.Fatalf("os.WriteFile(dsn, data, 0644) failed with '%s'\n", err)
-		}
-		fmt.Println("Database file created successfully.")
+		fmt.Println("database file created successfully")
 	}
 	db, err := sql.Open(driver, dsn)
 	if err != nil {
@@ -55,7 +48,7 @@ func SetupDB(driver, dsn string) *data.SQLiteDatabase {
 		);`,
 	)
 	if err != nil {
-		log.Fatalf("db.Exec()failed with '%s'\n", err)
+		log.Fatalf("db.Exec() failed with '%s'\n", err)
 	}
 	return &data.SQLiteDatabase{Connection: db}
 }
